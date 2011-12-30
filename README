@@ -1,0 +1,228 @@
+This class is used to greatly simplify the interaction of PHP with MySQL database via 
+Original MySQL API (http://www.php.net/manual/en/book.mysql.php) and 
+MySQL Improved Extension (http://www.php.net/manual/en/book.mysqli.php).
+
+main features of this class are
+
+1) Simple API
+2) Portable - single api is usable for MySQL,MySQLi,PostgreSQL(planned) et cetera.
+3) Build in escaper for protection against SQL injections (but for protection from XSS 
+(http://en.wikipedia.org/wiki/Cross-site_scripting) we need some HTML filtering functions not included in this package!)
+4) Singleton assembly of class - no multiple sql connection per script, and sql queries are accesible from every scope of view
+- from class, from function, from global...
+5) Build in tools for logging SQL requests and their results.
+
+----------
+|EXAMPLES|
+----------
+
+1) Inserting a row into table
+
+Native MySQL syntaxis
+******************
+$query='
+INSERT INTO users(`login`,`password`) 
+VALUES 
+(
+"'.trim(mysql_real_escape_string($_POST['login'])).'",
+"'.trim(mysql_real_escape_string($_POST['password'])).'"
+)';
+mysql_query($query,$link);
+
+if( !mysql_error($link)) echo 'New user created!';
+******************
+
+
+DBq version
+******************
+$query='
+INSERT INTO users(`login`,`password`) 
+VALUES 
+(
+"'.DB::filter($_POST['login']).'",
+"'.DB::filter($_POST['password']).'",
+)';
+
+if(DB::q($query)) echo 'New user created! His/her id is '.mysql_insert_id($link);
+******************
+
+2) Reading array of users from table
+
+Native MySQL syntaxis
+************************
+
+$query='SELECT * FROM users';
+$res=mysql_query($query,$link);
+$b=mysql_num_rows($res);
+for($i=0;$i<$b;$i++)
+  {
+  echo '<p>'.mysql_result($res,$i,'login').'</p>';
+  }
+echo 'We have '.$b.' users!';
+************************
+
+DBq version
+******************
+
+$users=DB::q('SELECT * FROM users');
+foreach($users as $user)
+  {
+  echo '<p>'.$user['login'].'</p>';
+  }
+echo 'We have '.count($users).' users!';
+******************
+
+
+----------------
+|Instalation   |
+----------------
+1. copy everything to you project directory.
+2. Edit file 'DB.php' - enter the apropriate meanings for constants describing the connection
+credentials to database
+3. choose the driver to database communication - uncomment the string with this driver name
+4. Include file 'DB.php' to your project.
+5. Enjoy
+
+
+
+----------------
+|Full syntaxis |
+----------------
+All supported commands
+
+****************************************
+*DB::q(string $mysql_query)	       *
+*DB::init()->query(string $mysql_query)*
+****************************************
+
+ - execute the $mysql_query. The return of this function depends on the query.
+if the query is insert,update,delete - the result is TRUE on success and FALSE on problems. 
+
+If $mysql_query is a 'select' type query (which meants this query retrieves data from database), 
+the result is a 2 dimensional array,where the first unassotiated array is for the rows of request 
+and this array consists of assotiated arrayes of columns.
+For example, we have the table of users, which is created by this 2 queries
+
+CREATE TABLE `users` (
+  `id` int(8) unsigned NOT NULL,
+  `name` char(63) NOT NULL,
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO `users` (`id`, `name`) VALUES
+(1,	'Vladimir'),
+(2,	'Ivan'),
+
+
+So, the command DB::q('SELECT * FROM users')
+
+will return 
+
+array(
+	array('id'=>1,'name'=>'Vladimir'),
+	array('id'=>2,'name'=>'Ivan'),
+);
+
+***********************
+*DB::init()->getLink()*
+***********************
+Returns the resource descriptor for mysql interaction
+For example (for mysql driver)
+
+$link=DB::init()->getLink();
+if(mysql_ping($link)) echo 'OK!';
+
+
+*******************************
+*DB::init()->getLastInsertId()*
+*******************************
+If last query was an insert query, this command will return the id of last inserted object.
+
+
+*******************************
+*DB::filter(string $a)	      *
+*DB::init()->filter(string $a)*
+*DB::f(string $a)			  *
+*******************************
+Return escaped version of the string. 
+See
+http://php.net/manual/en/function.mysql-real-escape-string.php
+http://php.net/manual/en/mysqli.real-escape-string.php
+for details.
+
+**********************
+*DB::init()->getRes()*
+*DB::r()			 *
+**********************
+Returns the result object of last query.For example
+
+DB::q('SELECT * FROM users WHERE `name`="Vladimir"');
+$res=DB::init()->getRes();
+echo mysql_result($res,0,'name');
+
+
+
+************************
+*DB::init()->getError()*
+*DB::err()			   *
+************************
+If last SQL query had an errors, returns the string descripting this errors.
+if there is now errors, returns false;
+
+
+************************
+*DB::init()->getStats()*
+*DB::s()			   *
+************************
+Returns information about all queries executed during this script running.
+This function returns array describing query information
+For example
+
+array(
+[0]=>array(
+	'type'=>'SELECT',			//type of query
+	'query'=>'SELECT * FROM `users`',	//query string
+	'time'=>20,				//duration of execution of query in miliseconds	
+	'status'=>'OK',				//status of query
+	'affected rows'=>451,			//number of rows affected
+   	  );
+
+[1]=>array(
+	'type'=>'UPDATE',
+	'query'=>'UPDATE `users` SET `name`="Pasha" WHERE id=2',
+	'time'=>32,
+	'status'=>'OK',
+	'affected rows'=>1,
+   	  );
+
+[2]=>array(
+	'type'=>'INSERT',
+	'query'=>'INSERT INTO `users`(`name`) VALUES ("Pasha")',
+	'time'=>33,
+	'status'=>'MySQL error: duplicate key `name` for value "Pasha"',
+	'affected rows'=>0
+   	  );
+)
+
+
+This is all!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

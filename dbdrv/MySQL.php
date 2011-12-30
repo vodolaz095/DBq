@@ -147,6 +147,31 @@ short
         $a=DB::init()->query($query);
         return $a;
     }
+
+    public static function f($string_to_escape)
+    {
+	    return DB::filter($string_to_escape);    
+	}
+    
+    public static function r()
+    {
+	    $a=DB::init()->getRes();
+        return $a;    
+	}
+	
+    public static function err()
+    {
+	    $a=DB::init()->getError();
+        return $a;    
+	}
+
+    public static function s()
+    {
+	    $a=DB::init()->getStats();
+        return $a;    
+	}
+
+	
     /*
 end_short
     */
