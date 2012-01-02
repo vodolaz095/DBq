@@ -120,7 +120,7 @@ class DB
     public static function filter($a)
     {
         $a=trim($a);
-        $a=mysqli_real_escape_string($a);
+        $a=mysqli_real_escape_string(DB::init()->getLink(),$a);
         return $a;
     }
 
