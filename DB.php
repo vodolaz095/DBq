@@ -15,8 +15,8 @@ define('DB_CHARSET','utf8');
  * Uncomment ONE driver which you want to use
  */
 
-require (__DIR__.'/dbdrv/MySQLi.php');
-//require (__DIR__.'/dbdrv/MySQL.php'); //old, not recommended!
+require_once 'dbdrv/MySQLi.php';
+//require_once 'dbdrv/MySQL.php'; //old, not recommended!
 
 
 
