@@ -17,16 +17,23 @@ scope of view - from class, from function, from global...
 |CRASH DIVE|
 ------------
 
-/* 0 */ include ('DB.php');
+<?php
+include ('DB.php');
 
-/* 1 */ DB::q('INSERT INTO users(`name`) VALUES ("'.DB::f($_POST['name']).'")'); 
-
+DB::q('INSERT INTO users(`name`) VALUES ("'.DB::f($_POST['name']).'")'); 
 //execute query for creating new entry in table `users` (SQL-injection save)
 
-/* 2 */ $users=DB::q('SELECT * FROM users'); //execute query to fetch assotiated array of rows of table  `users`
-foreach($users as $user) echo $user['name]; //
+$users=DB::q('SELECT * FROM users'); 
+//execute query to fetch assotiated array of rows of table  `users`
+foreach($users as $user) 
+	{
+		echo $user['name]; //
+	}
 
-/* 3 */ $stats=DB::s(); //fetch array with usefull statistical information about all mysql queries executed
+$stats=DB::s(); //fetch array with usefull statistical information about all mysql queries executed
+print_r($stats)
+?>
+
 ----------
 |EXAMPLES|
 ----------
