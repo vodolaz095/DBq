@@ -40,6 +40,7 @@ class DB
 
         $this->res=false;
 
+        $mysql_query=trim($mysql_query);
         $this->res=mysqli_query($this->lnk,$mysql_query);
         if(gettype($this->res)!='boolean')
         {
@@ -156,20 +157,20 @@ short
 
     public static function f($string_to_escape)
     {
-	    return DB::filter($string_to_escape);    
-	}
+        return DB::filter($string_to_escape);    
+    }
     
     public static function r()
     {
-	    $a=DB::init()->getRes();
+        $a=DB::init()->getRes();
         return $a;    
-	}
+    }
 	
     public static function err()
     {
-	    $a=DB::init()->getError();
-        return $a;    
-	}
+       $a=DB::init()->getError();
+       return $a;    
+    }
 
     public static function s()
     {
@@ -177,10 +178,40 @@ short
         return $a;    
 	}
 
-
     /*
 end_short
     */
+
+    public static function insert($table_name,$assosiated_array_of_values)
+    {
+
+        $columns='`'.implode('`,`',array_keys($assosiated_array_of_values)).'`';
+        $vals=array();
+        foreach($assosiated_array_of_values as $val)
+            {
+            $vals[]=DB::f($val);
+            }
+        $values='"'.implode('","',$vals).'"';
+        $q='INSERT INTO `'.$table_name.'`('.$columns.') VALUES ('.$values.')';
+        $a=DB::q($q);
+        return $a;
+    }
+
+public static function update($table_name,$assosiated_array_of_values,$string_where)
+    {
+        $columns=array_keys($assosiated_array_of_values);
+        $vals=array();
+        foreach($columns as $column)
+        {
+            $vals[]='`'.$column.'`="'.DB::f($assosiated_array_of_values[$column]).'"';
+        }
+        $values=implode(',',$vals);
+        $q='UPDATE `'.$table_name.'` SET '.$values.' WHERE '.$string_where;
+        $a=DB::q($q);
+        return $a;
+    }
+
+
     public function __destruct()
     {
         mysqli_close($this->lnk);
