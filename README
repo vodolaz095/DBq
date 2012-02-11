@@ -164,7 +164,7 @@ If last query was an insert query, this command will return the id of last inser
 *******************************
 *DB::filter(string $a)	      *
 *DB::init()->filter(string $a)*
-*DB::f(string $a)			  *
+*DB::f(string $a)             *
 *******************************
 Return escaped version of the string. 
 See
@@ -174,7 +174,7 @@ for details.
 
 **********************
 *DB::init()->getRes()*
-*DB::r()			 *
+*DB::r()	     *
 **********************
 Returns the result object of last query.For example
 
@@ -186,19 +186,54 @@ echo mysql_result($res,0,'name');
 
 ************************
 *DB::init()->getError()*
-*DB::err()			   *
+*DB::err()	       *
 ************************
 If last SQL query had an errors, returns the string descripting this errors.
-if there is now errors, returns false;
+if there is no errors, returns false;
+
+
+***************************************************************************
+*DB::update($table_name,$assosiated_array_of_parameters,$where_condition);*
+***************************************************************************
+Update table.
+For example
+
+$arr=array('name'=>'Jon');
+DB::update('USERS',$arr,'`id`=1');
+
+Will execute query 
+
+UPDATE `USERS` SET `name`='Jon' WHERE `id`=1
+
+NOTE: statistical data on query will be accaunted!
+
+**********************************************************
+*DB::insert($table_name,$assosiated_array_of_parameters);*
+**********************************************************
+
+Insert data table.
+For example
+
+$arr=array('name'=>'Jon');
+DB::insert('USERS',$arr);
+
+Will execute query 
+
+INSERT INTO `USERS`(`name`) VALUES ('Jon')
+
+NOTE: statistical data on query will be accaunted!
 
 
 ************************
 *DB::init()->getStats()*
-*DB::s()			   *
+*DB::s()	       *
 ************************
 Returns information about all queries executed during this script running.
 This function returns array describing query information
 For example
+
+PRINT_R(DB::s())
+
 
 array(
 [0]=>array(
