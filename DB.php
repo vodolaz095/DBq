@@ -23,10 +23,9 @@ require_once 'dbdrv/MySQLi.php';
 
 //EXAMPLE
 /*
-DB::q('INSERT into users(login) VALUES ("Vodolaz095")');
+DB::insert('users',array('username'=>'NaP');
 print_r(DB::q('SELECT * FROM users'));
-$a=DB::init();
-print_r($a->getStats());
+print_r(DB::s());
 */
 
 /*
