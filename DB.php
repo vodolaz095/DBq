@@ -25,7 +25,7 @@ require_once 'dbdrv/MySQLi.php';
 
 
 /*
- * Quick referensec
+ * Quick reference
 
 
 -------------------
