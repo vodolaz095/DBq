@@ -57,15 +57,9 @@ if( !mysql_error($link)) echo 'New user created!';
 
 DBq version
 ******************
-$query='
-INSERT INTO users(`login`,`password`) 
-VALUES 
-(
-"'.DB::filter($_POST['login']).'",
-"'.DB::filter($_POST['password']).'",
-)';
 
-if(DB::q($query)) echo 'New user created! His/her id is '.mysql_insert_id($link);
+$new_user=array('login'=>$_POST['login'],'login'=>$_POST['password']);
+if(DB::insert('users',$new_user)) echo 'New user created! His/her id is '.DB::getLastInsertId();
 ******************
 
 2) Reading array of users from table
