@@ -4,14 +4,14 @@ class DB
     protected static $instance;
     private $lnk;
     private $res;
-    private $stats=array();
+    private $stats = array();
+
 /*
  * Singleton get instanse
  */
     public static function init()
     {
-        if ( is_null(self::$instance) )
-        {
+        if (is_null(self::$instance)) {
             self::$instance = new DB();
         }
         return self::$instance;
@@ -19,189 +19,176 @@ class DB
 
     private function __construct()
     {
-        if(DB_PERSISTENT)
-            $link=mysql_pconnect(DB_HOST,DB_LOGIN,DB_PASSWORD);
+        if (DB_PERSISTENT)
+            $link = mysql_pconnect(DB_HOST, DB_LOGIN, DB_PASSWORD);
         else
-            $link=mysql_connect(DB_HOST,DB_LOGIN,DB_PASSWORD);
+            $link = mysql_connect(DB_HOST, DB_LOGIN, DB_PASSWORD);
 
-        if(mysql_ping($link))
-        {
-            if(mysql_select_db(DB_DATABASE,$link))
-            {
-                $this->lnk=$link;
-                mysql_set_charset(DB_CHARSET,$this->lnk);
+        if (mysql_ping($link)) {
+            if (mysql_select_db(DB_DATABASE, $link)) {
+                $this->lnk = $link;
+                mysql_set_charset(DB_CHARSET, $this->lnk);
             }
             else
-                trigger_error(__FILE__.'>>'.__METHOD__.' No database!');
+                trigger_error(__FILE__ . '>>' . __METHOD__ . ' No database!');
         }
         else
-            trigger_error(__FILE__.'>>'.__METHOD__.' error connecting to db!');
+            trigger_error(__FILE__ . '>>' . __METHOD__ . ' error connecting to db!');
     }
 
 ////////////////////////////////////////
-    public function query($mysql_query)
+    public static function q($mysql_query)
     {
-        $now=microtime(true);
+        $db = DB::init();
+        $now = microtime(true);
 
-        $this->res=false;
-        $mysql_query=trim($mysql_query);
-        $this->res=mysql_query($mysql_query,$this->lnk);
-        if(gettype($this->res)=='resource')
-        {
-            $ans=array();
-            while($a=mysql_fetch_assoc($this->res))
-            {
-                $ans[]=$a;
-            }
-            $type='SELECT';
-            $rows=mysql_num_rows($this->res);
-        }
-        else
-        {
-            if(preg_match('~^insert~i',$mysql_query)) //Create
-            {
-                $type='INSERT';
-                $ans=$this->res;
-                $rows=mysql_affected_rows($this->lnk);
+        $db->res = false;
 
-            }
-            elseif(preg_match('~^update~i',$mysql_query))//Edit
-            {
-                $type='UPDATE';
-                $ans=$this->res;
-                $rows=mysql_affected_rows($this->lnk);
-            }
-            elseif(preg_match('~^delete~i',$mysql_query))//DELETE
-            {
-                $type='DELETE';
-                $ans=$this->res;
-                $rows=mysql_affected_rows($this->lnk);
+        $mysql_query = trim($mysql_query);
+
+        $db->res = mysql_query($mysql_query, $db->lnk);
+        if (gettype($db->res) != 'boolean') {
+            if (gettype($db->res) == 'resource') {
+                $ans = array();
+
+                $fetch_objects = false;
+                if (defined('DB_FETCH_ROW_AS_OBJECT'))
+                    if (DB_FETCH_ROW_AS_OBJECT == true)
+                        $fetch_objects = true;
+
+
+                if ($fetch_objects) {
+                    while ($a = mysql_fetch_object($db->res))
+                    {
+                        $ans[] = $a;
+                    }
+
+                }
+                else
+                {
+                    while ($a = mysql_fetch_assoc($db->res))
+                    {
+                        $ans[] = $a;
+                    }
+                }
+                $type = 'SELECT';
+                $rows = mysql_num_rows($db->res);
             }
             else
             {
-                $type='UNKNOWN';
-                $ans=$this->res;
-                $rows=false;
+                $type = 'UNKNOWN';
+                $ans = false;
+                $rows = 0;
+            }
+
+        }
+        else
+        {
+            if (preg_match('~^insert~i', $mysql_query)) //Create
+            {
+                $type = 'INSERT';
+                $ans = $db->res;
+                $rows = mysql_affected_rows($db->lnk);
+
+            }
+            elseif (preg_match('~^update~i', $mysql_query)) //Edit
+            {
+                $type = 'UPDATE';
+                $ans = $db->res;
+                $rows = mysql_affected_rows($db->lnk);
+            }
+            elseif (preg_match('~^delete~i', $mysql_query)) //DELETE
+            {
+                $type = 'DELETE';
+                $ans = $db->res;
+                $rows = mysql_affected_rows($db->lnk);
+            }
+            else
+            {
+                $type = 'UNKNOWN';
+                $ans = $db->res;
+                $rows = false;
             }
 
         }
 
-        $exectime=microtime(true)-$now;
+        $exectime = microtime(true) - $now;
+        if (DB_QUERY_LOGGING) {
+            $db->stats[] = array(
+                'type' => $type,
+                'query' => $mysql_query,
+                'time' => round((1000 * $exectime), 2),
+                'status' => (mysql_error($db->lnk) == "") ? 'OK' : 'MySQL error: ' . mysql_error($db->lnk),
+                'affected rows' => $rows
 
-        if(DB_QUERY_LOGGING)
-        {
-            $this->stats[]=array(
-                'type'=>$type,
-                'query'=>$mysql_query,
-                'time'=>round((1000*$exectime),2),
-                'status'=>(mysql_error($this->lnk)=="") ? 'OK' : 'MySQL error: '.mysql_error($this->lnk),
-                'affected rows'=>$rows
             );
         }
         return $ans;
     }
 
-/////////////////////////// MISC
-    public function getLink()
+    public static function getLink()
     {
-        return $this->lnk;
+        $d = DB::init();
+        return $d->lnk;
     }
 
-    public function getLastInsertId()
+    public static function getRes()
     {
-        return mysql_insert_id($this->lnk);
+        $d = DB::init();
+        return $d->res;
     }
 
-    public static function filter($a)
+    public static function getLastInsertId()
     {
-        $a=trim($a);
-        $lnk=DB::init()->getLink();
-        $a=mysql_real_escape_string($a,$lnk);
-        return $a;
+        $d = DB::init();
+        return mysql_insert_id($d->lnk);
     }
 
-    public function getRes()
+    public static function getError()
     {
-        return $this->res;
+        $d = DB::init();
+        return (mysql_error($d->lnk) != "") ? mysql_error($d->lnk) : false;
     }
 
-    public function getError()
+    public static function s()
     {
-        return (mysql_error($this->lnk)!="") ? mysql_error($this->lnk) : false;
-    }
-
-    public function getNumberOfQueries()
-    {
-        return count($this->stats);
-    }
-
-    public function getStats()
-    {
-        return $this->stats;
-    }
-    /*
-short
-    */
-
-    public static function q($query)
-    {
-        $a=DB::init()->query($query);
+        $a = DB::init()->stats;
         return $a;
     }
 
     public static function f($string_to_escape)
     {
-	    return DB::filter($string_to_escape);    
-	  }
-    
-    public static function r()
-    {
-	    $a=DB::init()->getRes();
-      return $a;    
-	  }
-	
-    public static function err()
-    {
-	    $a=DB::init()->getError();
-      return $a;    
-  	}
+        $a = DB::init();
+        return mysql_real_escape_string($string_to_escape, $a->lnk);
+    }
 
-    public static function s()
-    {
-	    $a=DB::init()->getStats();
-        return $a;    
-	  }
 
-	
-    /*
-end_short
-    */
-    public static function insert($table_name,$assosiated_array_of_values)
+    public static function insert($table_name, $assosiated_array_of_values)
     {
 
-        $columns='`'.implode('`,`',array_keys($assosiated_array_of_values)).'`';
-        $vals=array();
-        foreach($assosiated_array_of_values as $val)
+        $columns = '`' . implode('`,`', array_keys($assosiated_array_of_values)) . '`';
+        $vals = array();
+        foreach ($assosiated_array_of_values as $val)
         {
-            $vals[]=DB::f($val);
+            $vals[] = DB::f($val);
         }
-        $values='"'.implode('","',$vals).'"';
-        $q='INSERT INTO `'.$table_name.'`('.$columns.') VALUES ('.$values.')';
-        $a=DB::q($q);
+        $values = '"' . implode('","', $vals) . '"';
+        $q = 'INSERT INTO `' . $table_name . '`(' . $columns . ') VALUES (' . $values . ')';
+        $a = DB::q($q);
         return $a;
     }
 
-    public static function update($table_name,$assosiated_array_of_values,$string_where)
+    public static function update($table_name, $assosiated_array_of_values, $string_where)
     {
-        $columns=array_keys($assosiated_array_of_values);
-        $vals=array();
-        foreach($columns as $column)
+        $columns = array_keys($assosiated_array_of_values);
+        $vals = array();
+        foreach ($columns as $column)
         {
-            $vals[]='`'.$column.'`="'.DB::f($assosiated_array_of_values[$column]).'"';
+            $vals[] = '`' . $column . '`="' . DB::f($assosiated_array_of_values[$column]) . '"';
         }
-        $values=implode(',',$vals);
-        $q='UPDATE `'.$table_name.'` SET '.$values.' WHERE '.$string_where;
-        $a=DB::q($q);
+        $values = implode(',', $vals);
+        $q = 'UPDATE `' . $table_name . '` SET ' . $values . ' WHERE ' . $string_where;
+        $a = DB::q($q);
         return $a;
     }
 
