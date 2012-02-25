@@ -20,19 +20,11 @@ class DB
 
         private function __construct()
             {
-                if (DB_PERSISTENT)
+                $db=new SQLite3(DB_PATH_TO_SQLITE_FILE);
+                //die(gettype($db));
+                if (get_class($db)=='SQLite3')
                     {
-                        $link=mysqli_connect('p:'.DB_HOST, DB_LOGIN, DB_PASSWORD, DB_DATABASE);
-                    }
-                else
-                    {
-                        $link=mysqli_connect(DB_HOST, DB_LOGIN, DB_PASSWORD, DB_DATABASE);
-                    }
-
-                if (mysqli_ping($link))
-                    {
-                        $this->lnk=$link;
-                        mysqli_set_charset($this->lnk, DB_CHARSET);
+                        $this->lnk=$db;
                     }
                 else
                     {
@@ -50,10 +42,10 @@ class DB
 
                 $mysql_query=trim($mysql_query);
 
-                $db->res=mysqli_query($db->lnk, $mysql_query);
+                $db->res=$db->lnk->query($mysql_query);
                 if (gettype($db->res)!='boolean')
                     {
-                        if (get_class($db->res)=='mysqli_result')
+                        if (get_class($db->res)=='SQLite3Result')
                             {
                                 $ans=array();
 
@@ -68,21 +60,34 @@ class DB
 
                                 if ($fetch_objects)
                                     {
-                                        while ($a=mysqli_fetch_object($db->res))
+                                        while ($a=$db->res->fetchArray(SQLITE3_ASSOC))
                                             {
-                                                $ans[]=$a;
+                                                $tmp=new stdClass();
+                                                /*
+                                                                        $tmp_arr=array_keys($a);
+                                                                        foreach($tmp_arr as $name)
+                                                                        {
+                                                                            echo PHP_EOL.'->'.$name.PHP_EOL;
+                                                                            $tmp->$$name=$tmp_arr[$name];
+                                                                        }
+                                                                        $ans[]=$tmp;
+                                                                        unset($tmp);
+                                                */
+                                                $ans[]=(object)$a;
                                             }
 
                                     }
                                 else
                                     {
-                                        while ($a=mysqli_fetch_assoc($db->res))
+                                        while ($a=$db->res->fetchArray(SQLITE3_ASSOC))
                                             {
                                                 $ans[]=$a;
                                             }
                                     }
                                 $type='SELECT';
-                                $rows=mysqli_num_rows($db->res);
+                                $rows=$db->res->numColumns();
+
+                                $db->res->finalize();
                             }
                         else
                             {
@@ -98,20 +103,20 @@ class DB
                             {
                                 $type='INSERT';
                                 $ans=$db->res;
-                                $rows=mysqli_affected_rows($db->lnk);
+                                $rows=$db->lnk->changes();
 
                             }
                         elseif (preg_match('~^update~i', $mysql_query)) //Edit
                             {
                                 $type='UPDATE';
                                 $ans=$db->res;
-                                $rows=mysqli_affected_rows($db->lnk);
+                                $rows=$db->lnk->changes();
                             }
                         elseif (preg_match('~^delete~i', $mysql_query)) //DELETE
                             {
                                 $type='DELETE';
                                 $ans=$db->res;
-                                $rows=mysqli_affected_rows($db->lnk);
+                                $rows=$db->lnk->changes();
                             }
                         else
                             {
@@ -128,11 +133,12 @@ class DB
                         $db->stats[]=array('type'          =>$type,
                                            'query'         =>$mysql_query,
                                            'time'          =>round((1000*$exectime), 2),
-                                           'status'        =>(mysqli_error($db->lnk)=="") ? 'OK' : 'MySQL error: '.mysqli_error($db->lnk),
-                                           'affected rows' =>$rows
+                                           'status'        =>($db->lnk->lastErrorCode()==0 or $db->lnk->lastErrorCode()==101) ? 'OK' : 'SQLite3 error: '.$db->lnk->lastErrorMsg(),
+                                           'affected rows' =>$rows,
 
                         );
                     }
+
                 return $ans;
             }
 
@@ -151,13 +157,13 @@ class DB
         public static function getLastInsertId()
             {
                 $d=DB::init();
-                return mysqli_insert_id($d->lnk);
+                return $d->lnk->lastInsertRowID();
             }
 
         public static function getError()
             {
-                $d=DB::init();
-                return (mysqli_error($d->lnk)!="") ? mysqli_error($d->lnk) : false;
+                $db=DB::init();
+                return ($db->lnk->lastErrorMsg()!="") ? $db->lnk->lastErrorMsg() : false;
             }
 
         public static function s()
@@ -169,7 +175,7 @@ class DB
         public static function f($string_to_escape)
             {
                 $a=DB::init();
-                return mysqli_real_escape_string($a->lnk, $string_to_escape);
+                return $a->lnk->escapeString($string_to_escape);
             }
 
 
@@ -205,9 +211,9 @@ class DB
 
         public function __destruct()
             {
-                if ($this->lnk)
+                if (get_class($this->lnk)=='SQLite3')
                     {
-                        mysqli_close($this->lnk);
+                        $this->lnk->close();
                     }
             }
     }

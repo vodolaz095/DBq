@@ -1,20 +1,25 @@
 <?php
-/*
- * enter settings for connection to mysql database
- */
-
-define('DB_HOST', 'localhost');
-define('DB_LOGIN', 'root');
-define('DB_PASSWORD', 'SeCReT');
-define('DB_DATABASE', 'MyDatabase');
-define('DB_PERSISTENT', false);
-define('DB_QUERY_LOGGING', true);
-define('DB_CHARSET', 'utf8');
-/*
+/* Main settings
  * If you uncomment this line, DB::q($query) will return results as array of objects
  */
 //define('DB_FETCH_ROW_AS_OBJECT',true);
 
+
+/*
+ *
+ *  <<start of MySQL block>>
+ * This is driver for MySQL database
+ * Enter settings here for connection to mysql database.
+ * uncomment this block to enable MySQL drivers
+ * comment this block to disable MySQL drivers
+ */
+define('DB_HOST', 'localhost');
+define('DB_LOGIN', 'root');
+define('DB_PASSWORD', 'SeCReT');
+define('DB_DATABASE', 'MyDatabase');
+define('DB_PERSISTENT', false); //persistent MySQL connection - usefull, when mysql server and web server are on different hosts
+define('DB_QUERY_LOGGING', true);
+define('DB_CHARSET', 'utf8');
 
 /*
 * Uncomment ONE driver which you want to use
@@ -22,6 +27,23 @@ define('DB_CHARSET', 'utf8');
 
 require_once 'dbdrv/MySQLi.php';
 //require_once 'dbdrv/MySQL.php'; //old, not recommended!
+
+
+/*
+ * <<end of MySQL block >>
+ */
+
+
+/*
+* <<start of SQLite driver>>
+*/
+
+//define('DB_PATH_TO_SQLITE_FILE','dbdrv/mysqlitedb.db');
+//require_once 'dbdrv/SQLite3.php';
+
+/*
+ * <<end of SQLite driver>>
+ */
 
 
 /*
