@@ -25,7 +25,7 @@ define('DB_CHARSET', 'utf8');
 * Uncomment ONE driver which you want to use
 */
 
-require_once 'dbdrv/MySQLi.php';
+require_once 'dbdrv/MySQLi.php'; //recommended
 //require_once 'dbdrv/MySQL.php'; //old, not recommended!
 
 
@@ -45,6 +45,21 @@ require_once 'dbdrv/MySQLi.php';
  * <<end of SQLite driver>>
  */
 
+
+/*
+ * <<start of PDO driver
+ */
+/*
+//under development.. need a lot of testing
+
+define('DB_PDO_DSN','mysql:host='.DB_HOST.';dbname='.DB_DATABASE);
+require_once 'dbdrv/PDO.php';
+
+*/
+
+/*
+ * <<end of PDO driver
+ */
 
 /*
  * Quick reference
