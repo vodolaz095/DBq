@@ -50,25 +50,19 @@ class DB
             {
                 $type='INSERT';
                 $ans=$db->res;
-                if(@get_class($db->res)=='PDOStatement')
-                    $rows=$db->res->rowCount();
-                else
-                    $rows=0;
+                $rows=$db->res->rowCount();
             }
             elseif (preg_match('~^update~i', $mysql_query)) //Edit
             {
                 $type='UPDATE';
                 $ans=$db->res;
-                if(@get_class($db->res)=='PDOStatement')
-                    $rows=$db->res->rowCount();
-                else
-                    $rows=0;
+                $rows=$db->res->rowCount();
             }
             elseif (preg_match('~^delete~i', $mysql_query)) //DELETE
             {
                 $type='DELETE';
                 $ans=$db->res;
-                if(@get_class($db->res)=='PDOStatement') $rows=$db->res->rowCount();
+                $rows=$db->res->rowCount();
             }
             else
             {
