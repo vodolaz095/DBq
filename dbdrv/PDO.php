@@ -44,56 +44,64 @@ class DB
         $mysql_query=trim($mysql_query);
 
         $db->res=$db->lnk->query($mysql_query);
-
-        if (preg_match('~^insert~i', $mysql_query)) //Create
+        if(@get_class($db->res)=='PDOStatement')
         {
-            $type='INSERT';
-            $ans=$db->res;
-            $rows=$db->res->rowCount();
-        }
-        elseif (preg_match('~^update~i', $mysql_query)) //Edit
-        {
-            $type='UPDATE';
-            $ans=$db->res;
-            $rows=$db->res->rowCount();
-        }
-        elseif (preg_match('~^delete~i', $mysql_query)) //DELETE
-        {
-            $type='DELETE';
-            $ans=$db->res;
-            $rows=$db->res->rowCount();
-        }
-        elseif(@get_class($db->res)=='PDOStatement')
-        {
-            $ans=array();
-            $fetch_objects=false;
-            if (defined('DB_FETCH_ROW_AS_OBJECT'))
+            if (preg_match('~^insert~i', $mysql_query)) //Create
             {
-                if (DB_FETCH_ROW_AS_OBJECT==true)
-                {
-                    $fetch_objects=true;
-                }
+                $type='INSERT';
+                $ans=$db->res;
+                if(@get_class($db->res)=='PDOStatement')
+                    $rows=$db->res->rowCount();
+                else
+                    $rows=0;
             }
-
-
-            if ($fetch_objects)
+            elseif (preg_match('~^update~i', $mysql_query)) //Edit
             {
-                while ($a=$db->res->fetchObject())
-                {
-                    $ans[]=$a;
-                }
-
+                $type='UPDATE';
+                $ans=$db->res;
+                if(@get_class($db->res)=='PDOStatement')
+                    $rows=$db->res->rowCount();
+                else
+                    $rows=0;
+            }
+            elseif (preg_match('~^delete~i', $mysql_query)) //DELETE
+            {
+                $type='DELETE';
+                $ans=$db->res;
+                if(@get_class($db->res)=='PDOStatement') $rows=$db->res->rowCount();
             }
             else
             {
-                while ($a=$db->res->fetch(PDO::FETCH_ASSOC))
+                $ans=array();
+                $fetch_objects=false;
+                if (defined('DB_FETCH_ROW_AS_OBJECT'))
                 {
-                    $ans[]=$a;
+                    if (DB_FETCH_ROW_AS_OBJECT==true)
+                    {
+                        $fetch_objects=true;
+                    }
                 }
-            }
 
-            $type='SELECT';
-            $rows=$db->res->rowCount();
+
+                if ($fetch_objects)
+                {
+                    while ($a=$db->res->fetchObject())
+                    {
+                        $ans[]=$a;
+                    }
+
+                }
+                else
+                {
+                    while ($a=$db->res->fetch(PDO::FETCH_ASSOC))
+                    {
+                        $ans[]=$a;
+                    }
+                }
+
+                $type='SELECT';
+                $rows=$db->res->rowCount();
+            }
         }
         else
         {
@@ -168,7 +176,7 @@ class DB
         {
             $vals[]=DB::f($val);
         }
-        $values=implode(",", $vals);
+        $values='"'.implode('","', $vals).'"';
         $q='INSERT INTO `'.$table_name.'`('.$columns.') VALUES ('.$values.')';
         $a=DB::q($q);
         return $a;
