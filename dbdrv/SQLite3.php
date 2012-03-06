@@ -21,7 +21,6 @@ class DB
         private function __construct()
             {
                 $db=new SQLite3(DB_PATH_TO_SQLITE_FILE);
-                //die(gettype($db));
                 if (get_class($db)=='SQLite3')
                     {
                         $this->lnk=$db;
@@ -62,17 +61,6 @@ class DB
                                     {
                                         while ($a=$db->res->fetchArray(SQLITE3_ASSOC))
                                             {
-                                                $tmp=new stdClass();
-                                                /*
-                                                                        $tmp_arr=array_keys($a);
-                                                                        foreach($tmp_arr as $name)
-                                                                        {
-                                                                            echo PHP_EOL.'->'.$name.PHP_EOL;
-                                                                            $tmp->$$name=$tmp_arr[$name];
-                                                                        }
-                                                                        $ans[]=$tmp;
-                                                                        unset($tmp);
-                                                */
                                                 $ans[]=(object)$a;
                                             }
 
