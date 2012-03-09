@@ -154,7 +154,7 @@ class DB
             {
                 $db=DB::init();
                 $tmp=$db->lnk->quote($string_to_escape);
-                $tmp=substr($tmp, 1, strlen($tmp)-1);//убираем кавычку слева, убираем кавычку справа
+                $tmp=substr($tmp, 1, strlen($tmp)-2);//убираем кавычку слева, убираем кавычку справа
                 return($tmp);
             }
 
