@@ -196,6 +196,10 @@ class DB
                 return $a;
             }
 
+        public static function GetDriver()
+            {
+                return 'SQLite3';
+            }
 
         public function __destruct()
             {

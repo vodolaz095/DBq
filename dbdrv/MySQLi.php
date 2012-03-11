@@ -202,6 +202,10 @@ class DB
                 return $a;
             }
 
+        public static function GetDriver()
+            {
+                return 'MySQLi';
+            }
 
         public function __destruct()
             {

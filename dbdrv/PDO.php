@@ -188,6 +188,10 @@ class DB
                 return $a;
             }
 
+        public static function GetDriver()
+            {
+                return 'PDO';
+            }
 
         public function __destruct()
             {
