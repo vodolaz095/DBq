@@ -9,7 +9,7 @@ class DB
 /*
  * Singleton get instanse
  */
-        public static function init()
+        private  function init()
             {
                 if (is_null(self::$instance))
                     {

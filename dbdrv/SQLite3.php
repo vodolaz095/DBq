@@ -9,7 +9,7 @@ class DB
 /*
 * Singleton get instanse
 */
-        public static function init()
+        private  function init()
             {
                 if (is_null(self::$instance))
                     {
@@ -201,7 +201,7 @@ class DB
                 return 'SQLite3';
             }
 
-        public function __destruct()
+        public   function __destruct()
             {
                 if (get_class($this->lnk)=='SQLite3')
                     {
