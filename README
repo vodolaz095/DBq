@@ -27,7 +27,7 @@ $users=DB::q('SELECT * FROM users');
 //execute query to fetch assotiated array of rows of table  `users`
 foreach($users as $user) 
 	{
-		echo $user['name]; //
+		echo $user['name']; //
 	}
 
 $stats=DB::s(); //fetch array with usefull statistical information about all mysql queries executed
