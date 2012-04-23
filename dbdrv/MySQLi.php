@@ -20,24 +20,29 @@ class DB
 
         private function __construct()
             {
-                if (DB_PERSISTENT)
+            
+                if (defined('DB_PERSISTENT') and DB_PERSISTENT)
                     {
+                    if(preg_match('~^5\.3\.~',phpversion()))
                         $link=mysqli_connect('p:'.DB_HOST, DB_LOGIN, DB_PASSWORD, DB_DATABASE);
-                    }
-                else
-                    {
+                    else
                         $link=mysqli_connect(DB_HOST, DB_LOGIN, DB_PASSWORD, DB_DATABASE);
                     }
-
-                if (mysqli_ping($link))
+                else
                     {
-                        $this->lnk=$link;
-                        mysqli_set_charset($this->lnk, DB_CHARSET);
+                    $link=mysqli_connect(DB_HOST, DB_LOGIN, DB_PASSWORD, DB_DATABASE);
+                    }
+
+                if ($link and mysqli_ping($link))
+                    {
+                    $this->lnk=$link;
+                    mysqli_set_charset($this->lnk, DB_CHARSET);
                     }
                 else
                     {
-                        trigger_error(__FILE__.'>>'.__METHOD__.' error connecting to db!');
+                    trigger_error(__FILE__.'>>'.__METHOD__.' error connecting to db!');
                     }
+
             }
 
 ////////////////////////////////////////
